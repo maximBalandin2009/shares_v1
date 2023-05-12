@@ -9,6 +9,7 @@ app = tk.Tk()
 app.geometry("1000x1000")
 app.title("Проект")
 
+
 label1 = tk.Label(text="Выберите акцию:")
 label1.pack()
 
