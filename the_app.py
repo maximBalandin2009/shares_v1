@@ -114,11 +114,12 @@ def fixFirstAndLastDate(name):
             '''
             listToPlot=[]
             listDates=[]
+            fig, axs = plt.subplots(figsize=(10,10), nrows=2, ncols=1)
             for i in range(0, df.shape[0]-1):
                 listToPlot.append(df.Close[i])
                 listDates.append(df.index[i])
 
-            line_plot_stock,= plt.plot(listDates,listToPlot, color='blue', label = f'{list_selected[0]}')
+            line_plot_stock,= axs[0].plot(listDates,listToPlot, color='blue', label = f'{list_selected[0]}')
 
             listSTD=[]
             listDatesSTD=[]
@@ -128,10 +129,10 @@ def fixFirstAndLastDate(name):
                 for i in range(30):
                     s+=df.Close[j+i]
                 listSTD.append(s/30)
-                print(df.index[j+30])
-                print(s/30)
+                # print(df.index[j+30])
+                # print(s/30)
                 listDatesSTD.append(df.index[j+30])
-            line_plot_std30,=plt.plot(listDatesSTD,listSTD,color='red', label = 'скользящее среднее (за каждые 30 дней)')
+            line_plot_std30,=axs[0].plot(listDatesSTD,listSTD,color='red', label = 'скользящее среднее (за каждые 30 дней)')
             listSTD1=[]
             listDatesSTD1=[]
             for j in range(0,df.shape[0]-200):
@@ -140,11 +141,28 @@ def fixFirstAndLastDate(name):
                 for i in range(200):
                     s+=df.Close[j+i]
                 listSTD1.append(s/200)
-                print(df.index[j+200])
-                print(s/200)
+                # print(df.index[j+200])
+                # print(s/200)
                 listDatesSTD1.append(df.index[j+200])
-            line_plot_std200,=plt.plot(listDatesSTD1,listSTD1,color='purple', label = 'скользящее среднее (за каждые 200 дней)')
-            plt.legend(handles=[line_plot_stock, line_plot_std30,line_plot_std200])
+            line_plot_std200,=axs[0].plot(listDatesSTD1,listSTD1,color='purple', label = 'скользящее среднее (за каждые 200 дней)')
+
+            listPlotRSI=[]
+            listDatesRSI=[]
+            for i in range(0, df.shape[0]-15):
+                RS_plus = 0
+                RS_minus = 0
+                for j in range(14):
+                    if df.Open[i+j]<=df.Close[i+j]:
+                        RS_plus+=df.Close[i+j]-df.Open[i+j]
+                    if df.Open[i+j]>df.Close[i+j]:
+                        RS_minus += df.Open[i+j] - df.Close[i+j]
+                #print(100/(1+(RS/14)))
+                listPlotRSI.append(100 - (100/(1 + ((RS_plus/RS_minus)))))
+                listDatesRSI.append(df.index[i+14])
+            # line_plot_30,=axs[1].axhline(x=30, color='r')
+            # line_plot_70, = axs[1].axhline(x=70, color='r')
+            line_plot_RSI,=axs[1].plot(listDatesRSI,listPlotRSI, color = 'black', label = 'RSI')
+            axs[0].legend(handles=[line_plot_stock, line_plot_std30, line_plot_std200, line_plot_RSI])
             plt.xticks(rotation=30, ha='right')
             plt.show()
         def printStatisticTable(df_1):
@@ -184,8 +202,8 @@ def fixFirstAndLastDate(name):
                 df = pd.read_csv(name)
                 df.drop('OpenInt', axis=1, inplace=True)
 
-                if time[0] == ' ':
-                    print(time[0])
+                if time[0] == '':
+                    #print(time[0])
                     inds = 0
                 elif list(df.Date).count(time[0]) == 0:
                     isNotDate=False
@@ -206,25 +224,37 @@ def fixFirstAndLastDate(name):
 
                     if isNotDate==False:
                         timeToMake=time[0].split('-')
-                        print(timeToMake)
+                        #print(timeToMake)
                         timeToMake1=[]
                         for i in timeToMake:
                             timeToMake1.append(int(i))
                         for j in range(12):
                             breakCycle=False
-                            for i in range(1,timeToMake1[2]):
-                                strToTest = f'{timeToMake1[0]}-0{timeToMake1[1]}-{timeToMake1[2]-i}'
-                                print(strToTest)
-                                if list(df.Date).count(strToTest) != 0:
-                                    breakCycle=True
-                                    inds = list(df.Date).index(strToTest)
+                            for i in range(1,timeToMake1[2]+1):
+                                if timeToMake1[2]-i!=0:
+                                    strToTest = f'{timeToMake1[0]}-0{timeToMake1[1]}-{timeToMake1[2]-i}'
+                                    #print(strToTest)
+                                    if list(df.Date).count(strToTest) != 0:
+                                        breakCycle=True
+                                        inds = list(df.Date).index(strToTest)
+                                        break
+                                else:
                                     break
                             if breakCycle==True:
                                 break
-                            timeToMake1[1]=timeToMake1[1]-1
+                            if timeToMake1[2]==1:
+                                timeToMake1[2] = 31
+                            if timeToMake1[1] != 1:
+                                #timeToMake1[2]=31
+                                timeToMake1[1]=abs(timeToMake1[1]-1)
+                            else:
+                                #timeToMake1[2] = 31
+                                timeToMake1[1]=12
+                                timeToMake1[0]=timeToMake1[0]-1
+
                 elif list(df.Date).count(time[0]) != 0:
                     inds = list(df.Date).index(time[0])
-                if time[1] == ' ':
+                if time[1] == '':
                     indf = df.shape[0]
                 elif list(df.Date).count(time[1]) == 0:
                     isNotDate = False
@@ -243,25 +273,35 @@ def fixFirstAndLastDate(name):
                         isNotDate = True
                         indf = df.shape[0]
 
-
                     if isNotDate == False:
                         timeToMake = time[1].split('-')
-                        print(timeToMake)
+                        # print(timeToMake)
                         timeToMake1 = []
                         for i in timeToMake:
                             timeToMake1.append(int(i))
                         for j in range(12):
                             breakCycle = False
-                            for i in range(1, timeToMake1[2]):
-                                strToTest = f'{timeToMake1[0]}-0{timeToMake1[1]}-{timeToMake1[2] - i}'
-                                print(strToTest)
-                                if list(df.Date).count(strToTest) != 0:
-                                    breakCycle = True
-                                    indf = list(df.Date).index(strToTest)
+                            for i in range(1, timeToMake1[2] + 1):
+                                if timeToMake1[2] - i != 0:
+                                    strToTest = f'{timeToMake1[0]}-0{timeToMake1[1]}-{timeToMake1[2] - i}'
+                                    # print(strToTest)
+                                    if list(df.Date).count(strToTest) != 0:
+                                        breakCycle = True
+                                        indf = list(df.Date).index(strToTest)
+                                        break
+                                else:
                                     break
                             if breakCycle == True:
                                 break
-                            timeToMake1[1] = timeToMake1[1] - 1
+                            if timeToMake1[2] == 1:
+                                timeToMake1[2] = 31
+                            if timeToMake1[1] != 1:
+                                # timeToMake1[2]=31
+                                timeToMake1[1] = abs(timeToMake1[1] - 1)
+                            else:
+                                # timeToMake1[2] = 31
+                                timeToMake1[1] = 12
+                                timeToMake1[0] = timeToMake1[0] - 1
                 elif list(df.Date).count(time[1]) != 0:
                     indf = list(df.Date).index(time[1])
 
