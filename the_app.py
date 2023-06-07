@@ -32,7 +32,7 @@ stock.insert(10, 'adru')
 stock.insert(11, 'afk')
 list_selected = []
 stock.pack()
-
+listIndexes = []
 
 def selectedItem():
     '''
@@ -108,131 +108,155 @@ def fixFirstAndLastDate(name):
 
         # print(time)
 
-        def printPlotStock():
-            '''
-            Данная функция рисует график изменения цены акции
-            '''
-            name = f'{list_selected[0]}.us.csv'
+        def analysesOfTheStock():
+                '''
+                Подгатовка датасета для формирования графика и таблицы со статистикой
+                '''
+                list_posible_sim=['1','2','3','4','5','6','7','8','9','0','-']
 
-            list_posible_sim = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-']
+                df = pd.read_csv(f'{list_selected[0]}.us.csv')
+                df.drop('OpenInt', axis=1, inplace=True)
 
-            df = pd.read_csv(name)
-            df.drop('OpenInt', axis=1, inplace=True)
-
-            if time[0] == '':
-                # print(time[0])
-                inds = 0
-            elif list(df.Date).count(time[0]) == 0:
-                isNotDate = False
-                for i in list(time[0]):
-                    if list_posible_sim.count(i) == 0:
+                if time[0] == '':
+                    #print(time[0])
+                    inds = 0
+                    listIndexes.append(inds)
+                elif list(df.Date).count(time[0]) == 0:
+                    isNotDate=False
+                    for i in list(time[0]):
+                        if list_posible_sim.count(i)==0:
+                            label4 = tk.Label(
+                                text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
+                            label4.pack()
+                            isNotDate=True
+                            inds = 0
+                            listIndexes.append(inds)
+                            break
+                    if list(time[0]).count('-') != 2:
                         label4 = tk.Label(
                             text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
                         label4.pack()
                         isNotDate = True
                         inds = 0
-                        break
-                if list(time[0]).count('-') != 2:
-                    label4 = tk.Label(
-                        text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
-                    label4.pack()
-                    isNotDate = True
-                    inds = 0
+                        listIndexes.append(inds)
 
-                if isNotDate == False:
-                    timeToMake = time[0].split('-')
-                    # print(timeToMake)
-                    timeToMake1 = []
-                    for i in timeToMake:
-                        timeToMake1.append(int(i))
-                    for j in range(12):
-                        breakCycle = False
-                        for i in range(1, timeToMake1[2] + 1):
-                            if timeToMake1[2] - i != 0:
-                                strToTest = f'{timeToMake1[0]}-0{timeToMake1[1]}-{timeToMake1[2] - i}'
-                                # print(strToTest)
-                                if list(df.Date).count(strToTest) != 0:
-                                    breakCycle = True
-                                    inds = list(df.Date).index(strToTest)
+                    if isNotDate==False:
+                        timeToMake=time[0].split('-')
+                        #print(timeToMake)
+                        timeToMake1=[]
+                        for i in timeToMake:
+                            timeToMake1.append(int(i))
+                        for j in range(12):
+                            breakCycle=False
+                            for i in range(1,timeToMake1[2]+1):
+                                if timeToMake1[2]-i!=0:
+                                    strToTest = f'{timeToMake1[0]}-0{timeToMake1[1]}-{timeToMake1[2]-i}'
+                                    #print(strToTest)
+                                    if list(df.Date).count(strToTest) != 0:
+                                        breakCycle=True
+                                        inds = list(df.Date).index(strToTest)
+                                        listIndexes.append(inds)
+                                        break
+                                else:
                                     break
-                            else:
+                            if breakCycle==True:
                                 break
-                        if breakCycle == True:
-                            break
-                        if timeToMake1[2] == 1:
-                            timeToMake1[2] = 31
-                        if timeToMake1[1] != 1:
-                            # timeToMake1[2]=31
-                            timeToMake1[1] = abs(timeToMake1[1] - 1)
-                        else:
-                            # timeToMake1[2] = 31
-                            timeToMake1[1] = 12
-                            timeToMake1[0] = timeToMake1[0] - 1
+                            if timeToMake1[2]==1:
+                                timeToMake1[2] = 31
+                            if timeToMake1[1] != 1:
+                                #timeToMake1[2]=31
+                                timeToMake1[1]=abs(timeToMake1[1]-1)
+                            else:
+                                #timeToMake1[2] = 31
+                                timeToMake1[1]=12
+                                timeToMake1[0]=timeToMake1[0]-1
 
-            elif list(df.Date).count(time[0]) != 0:
-                inds = list(df.Date).index(time[0])
-            if time[1] == '':
-                indf = df.shape[0]
-            elif list(df.Date).count(time[1]) == 0:
-                isNotDate = False
-                for i in list(time[1]):
-                    if list_posible_sim.count(i) == 0:
+                elif list(df.Date).count(time[0]) != 0:
+                    inds = list(df.Date).index(time[0])
+                    listIndexes.append(inds)
+                if time[1] == '':
+                    indf = df.shape[0]
+                    listIndexes.append(indf)
+                elif list(df.Date).count(time[1]) == 0:
+                    isNotDate = False
+                    for i in list(time[1]):
+                        if list_posible_sim.count(i) == 0:
+                            label4 = tk.Label(
+                                text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
+                            label4.pack()
+                            isNotDate = True
+                            indf = df.shape[0]
+                            listIndexes.append(indf)
+                            break
+                    if list(time[1]).count('-') != 2:
                         label4 = tk.Label(
                             text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
                         label4.pack()
                         isNotDate = True
                         indf = df.shape[0]
-                        break
-                if list(time[1]).count('-') != 2:
-                    label4 = tk.Label(
-                        text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
-                    label4.pack()
-                    isNotDate = True
-                    indf = df.shape[0]
+                        listIndexes.append(indf)
 
-                if isNotDate == False:
-                    timeToMake = time[1].split('-')
-                    # print(timeToMake)
-                    timeToMake1 = []
-                    for i in timeToMake:
-                        timeToMake1.append(int(i))
-                    for j in range(12):
-                        breakCycle = False
-                        for i in range(1, timeToMake1[2] + 1):
-                            if timeToMake1[2] - i != 0:
-                                strToTest = f'{timeToMake1[0]}-0{timeToMake1[1]}-{timeToMake1[2] - i}'
-                                # print(strToTest)
-                                if list(df.Date).count(strToTest) != 0:
-                                    breakCycle = True
-                                    indf = list(df.Date).index(strToTest)
+                    if isNotDate == False:
+                        timeToMake = time[1].split('-')
+                        # print(timeToMake)
+                        timeToMake1 = []
+                        for i in timeToMake:
+                            timeToMake1.append(int(i))
+                        for j in range(12):
+                            breakCycle = False
+                            for i in range(1, timeToMake1[2] + 1):
+                                if timeToMake1[2] - i != 0:
+                                    strToTest = f'{timeToMake1[0]}-0{timeToMake1[1]}-{timeToMake1[2] - i}'
+                                    # print(strToTest)
+                                    if list(df.Date).count(strToTest) != 0:
+                                        breakCycle = True
+                                        indf = list(df.Date).index(strToTest)
+                                        listIndexes.append(indf)
+                                        break
+                                else:
                                     break
-                            else:
+                            if breakCycle == True:
                                 break
-                        if breakCycle == True:
-                            break
-                        if timeToMake1[2] == 1:
-                            timeToMake1[2] = 31
-                        if timeToMake1[1] != 1:
-                            # timeToMake1[2]=31
-                            timeToMake1[1] = abs(timeToMake1[1] - 1)
-                        else:
-                            # timeToMake1[2] = 31
-                            timeToMake1[1] = 12
-                            timeToMake1[0] = timeToMake1[0] - 1
-            elif list(df.Date).count(time[1]) != 0:
-                indf = list(df.Date).index(time[1])
-            # indStart = df.Date.index(time[0])
-            # indFinish = df.Date.index(time[1])
+                            if timeToMake1[2] == 1:
+                                timeToMake1[2] = 31
+                            if timeToMake1[1] != 1:
+                                # timeToMake1[2]=31
+                                timeToMake1[1] = abs(timeToMake1[1] - 1)
+                            else:
+                                # timeToMake1[2] = 31
+                                timeToMake1[1] = 12
+                                timeToMake1[0] = timeToMake1[0] - 1
+                elif list(df.Date).count(time[1]) != 0:
+                    indf = list(df.Date).index(time[1])
+                    listIndexes.append(indf)
+
+
+
+
+        def printPlotStock():
+            '''
+            Данная функция рисует график изменения цены акции
+            '''
+            analysesOfTheStock()
+            df = pd.read_csv(f'{list_selected[0]}.us.csv')
+            df.drop('OpenInt', axis=1, inplace=True)
             df.set_index('Date', inplace=True)
             df.index = pd.to_datetime(df.index)
-            listToPlot=[]
-            listDates=[]
-            fig, axs = plt.subplots(figsize=(10,10), nrows=2, ncols=1)
-            for i in range(0, df.shape[0]-1):
-                listToPlot.append(df.Close[i])
-                listDates.append(df.index[i])
+            listIndNew = ['','']
 
-            line_plot_stock,= axs[0].plot(df.index[inds:indf],df.Close[inds:indf], color='blue', label = f'{list_selected[0]}')
+            listIndNew[0] = list(df.index)[listIndexes[0]]
+            listIndNew[1] = list(df.index)[listIndexes[1]-1]
+            listS = listIndexes[0]
+            listF = listIndexes[1]
+            fig, axs = plt.subplots(figsize=(10,10), nrows=2, ncols=1)
+            #print(listIndNew)
+            listDates = []
+            for i in range(listIndexes[0],listIndexes[1]):
+                listDates.append(list(df.index)[i])
+
+            line_plot_stock,= axs[0].plot(listDates,df.Close[listIndNew[0]:listIndNew[1]], color='blue', label = f'{list_selected[0]}')
+
+            #print(len(listDates))
 
             listSTD=[]
             listDatesSTD=[]
@@ -242,9 +266,18 @@ def fixFirstAndLastDate(name):
                 for i in range(30):
                     s+=df.Close[j+i]
                 listSTD.append(s/30)
-
+                # print(df.index[j+30])
+                # print(s/30)
                 listDatesSTD.append(df.index[j+30])
-            line_plot_std30,=axs[0].plot(listDatesSTD[inds:indf],listSTD[inds:indf],color='red', label = 'скользящее среднее (за каждые 30 дней)')
+
+            if listIndexes[0]>=30:
+                listIndexes[0]=listIndexes[0]-30
+
+            listPoints30 = listSTD[listIndexes[0]:listIndexes[1]]
+            line_plot_std30,=axs[0].plot(listDatesSTD[listIndexes[0]:listIndexes[1]],listSTD[listIndexes[0]:listIndexes[1]],color='red', label = 'скользящее среднее (за каждые 30 дней)')
+
+            # print(listPoints30)
+
             listSTD1=[]
             listDatesSTD1=[]
             for j in range(0,df.shape[0]-200):
@@ -253,10 +286,32 @@ def fixFirstAndLastDate(name):
                 for i in range(200):
                     s+=df.Close[j+i]
                 listSTD1.append(s/200)
-                # print(df.index[j+200])
-                # print(s/200)
+
                 listDatesSTD1.append(df.index[j+200])
-            line_plot_std200,=axs[0].plot(listDatesSTD1[inds:indf],listSTD1[inds:indf],color='purple', label = 'скользящее среднее (за каждые 200 дней)')
+            if listIndexes[0]>=200:
+                listIndexes[0]=listIndexes[0]-200+30
+
+            listPoints200 = listSTD1[listIndexes[0]:listIndexes[1]]
+            line_plot_std200,=axs[0].plot(listDatesSTD1[listIndexes[0]:listIndexes[1]],listSTD1[listIndexes[0]:listIndexes[1]],color='purple', label = 'скользящее среднее (за каждые 200 дней)')
+            # print('#')
+            # print(listPoints30)
+            # print('#')
+            # print(listPoints200)
+            #print(len(listPoints200),len(listPoints30))
+            for i in listPoints200:
+                #print('#')
+                if listPoints30.count(i)!=0:
+                    print(listPoints30.count(i))
+
+            n = 0
+            for i in listDatesSTD1[listIndexes[0]:listIndexes[1]]:
+                #print(listDatesSTD[listIndexes[0]:listIndexes[1]][0],listDatesSTD1[listIndexes[0]:listIndexes[1]][0])
+                #print(f'({listSTD1[listIndexes[0]:listIndexes[1]][n], listSTD[listIndexes[0]:listIndexes[1]][n]}),({listPoints200[n], listPoints30[n]})')
+                if listPoints200[n] == listPoints30[n]:
+                    axs[0].scatter(i,listSTD1[listIndexes[0]:listIndexes[1]][n], c = 'r')
+                n += 1
+
+            #axs[0].scatter(listDatesSTD[listIndexes[0]:listIndexes[1]][30], listSTD1[listIndexes[0]:listIndexes[1]][30], c='r')
 
             listPlotRSI=[]
             listDatesRSI=[]
@@ -271,17 +326,22 @@ def fixFirstAndLastDate(name):
 
                 listPlotRSI.append(100 - (100/(1 + ((RS_plus/RS_minus)))))
                 listDatesRSI.append(df.index[i+14])
+
+            if listIndexes[0]>=14:
+                listIndexes[0]=listIndexes[0]-14+170
+
+            line_plot_RSI,=axs[1].plot(listDatesRSI[listIndexes[0]:listIndexes[1]],listPlotRSI[listIndexes[0]:listIndexes[1]], color = 'black', label = 'RSI')
+
             list30 = []
             list70 = []
-            listX = []
-            for i in range(len(listPlotRSI)):
+
+            for i in listDatesRSI[listIndexes[0]:listIndexes[1]]:
                 list30.append(30)
                 list70.append(70)
-                listX.append(i)
 
-            line_plot_30  =axs[1].plot(listDatesRSI[inds:indf],list30[inds:indf], color='r')
-            line_plot_70 = axs[1].plot(listDatesRSI[inds:indf],list70[inds:indf], color='r')
-            line_plot_RSI,=axs[1].plot(listDatesRSI[inds:indf],listPlotRSI[inds:indf], color = 'black', label = 'RSI')
+            axs[1].plot(listDatesRSI[listIndexes[0]:listIndexes[1]], list30,color='green', label='RSI')
+            axs[1].plot(listDatesRSI[listIndexes[0]:listIndexes[1]], list70, color='green', label='RSI')
+
             axs[0].legend(handles=[line_plot_stock, line_plot_std30, line_plot_std200, line_plot_RSI])
             plt.xticks(rotation=30, ha='right')
             plt.show()
@@ -313,126 +373,6 @@ def fixFirstAndLastDate(name):
 
             for row in list_rows:
                 tree.insert("", tk.END, values=row)
-
-        # def analysesOfTheStock(name):
-        #         '''
-        #         Подгатовка датасета для формирования графика и таблицы со статистикой
-        #         '''
-        #         list_posible_sim=['1','2','3','4','5','6','7','8','9','0','-']
-        #
-        #         df = pd.read_csv(name)
-        #         df.drop('OpenInt', axis=1, inplace=True)
-        #
-        #         if time[0] == '':
-        #             #print(time[0])
-        #             inds = 0
-        #         elif list(df.Date).count(time[0]) == 0:
-        #             isNotDate=False
-        #             for i in list(time[0]):
-        #                 if list_posible_sim.count(i)==0:
-        #                     label4 = tk.Label(
-        #                         text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
-        #                     label4.pack()
-        #                     isNotDate=True
-        #                     inds = 0
-        #                     break
-        #             if list(time[0]).count('-') != 2:
-        #                 label4 = tk.Label(
-        #                     text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
-        #                 label4.pack()
-        #                 isNotDate = True
-        #                 inds = 0
-        #
-        #             if isNotDate==False:
-        #                 timeToMake=time[0].split('-')
-        #                 #print(timeToMake)
-        #                 timeToMake1=[]
-        #                 for i in timeToMake:
-        #                     timeToMake1.append(int(i))
-        #                 for j in range(12):
-        #                     breakCycle=False
-        #                     for i in range(1,timeToMake1[2]+1):
-        #                         if timeToMake1[2]-i!=0:
-        #                             strToTest = f'{timeToMake1[0]}-0{timeToMake1[1]}-{timeToMake1[2]-i}'
-        #                             #print(strToTest)
-        #                             if list(df.Date).count(strToTest) != 0:
-        #                                 breakCycle=True
-        #                                 inds = list(df.Date).index(strToTest)
-        #                                 break
-        #                         else:
-        #                             break
-        #                     if breakCycle==True:
-        #                         break
-        #                     if timeToMake1[2]==1:
-        #                         timeToMake1[2] = 31
-        #                     if timeToMake1[1] != 1:
-        #                         #timeToMake1[2]=31
-        #                         timeToMake1[1]=abs(timeToMake1[1]-1)
-        #                     else:
-        #                         #timeToMake1[2] = 31
-        #                         timeToMake1[1]=12
-        #                         timeToMake1[0]=timeToMake1[0]-1
-        #
-        #         elif list(df.Date).count(time[0]) != 0:
-        #             inds = list(df.Date).index(time[0])
-        #         if time[1] == '':
-        #             indf = df.shape[0]
-        #         elif list(df.Date).count(time[1]) == 0:
-        #             isNotDate = False
-        #             for i in list(time[1]):
-        #                 if list_posible_sim.count(i) == 0:
-        #                     label4 = tk.Label(
-        #                         text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
-        #                     label4.pack()
-        #                     isNotDate = True
-        #                     indf = df.shape[0]
-        #                     break
-        #             if list(time[1]).count('-') != 2:
-        #                 label4 = tk.Label(
-        #                     text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
-        #                 label4.pack()
-        #                 isNotDate = True
-        #                 indf = df.shape[0]
-        #
-        #             if isNotDate == False:
-        #                 timeToMake = time[1].split('-')
-        #                 # print(timeToMake)
-        #                 timeToMake1 = []
-        #                 for i in timeToMake:
-        #                     timeToMake1.append(int(i))
-        #                 for j in range(12):
-        #                     breakCycle = False
-        #                     for i in range(1, timeToMake1[2] + 1):
-        #                         if timeToMake1[2] - i != 0:
-        #                             strToTest = f'{timeToMake1[0]}-0{timeToMake1[1]}-{timeToMake1[2] - i}'
-        #                             # print(strToTest)
-        #                             if list(df.Date).count(strToTest) != 0:
-        #                                 breakCycle = True
-        #                                 indf = list(df.Date).index(strToTest)
-        #                                 break
-        #                         else:
-        #                             break
-        #                     if breakCycle == True:
-        #                         break
-        #                     if timeToMake1[2] == 1:
-        #                         timeToMake1[2] = 31
-        #                     if timeToMake1[1] != 1:
-        #                         # timeToMake1[2]=31
-        #                         timeToMake1[1] = abs(timeToMake1[1] - 1)
-        #                     else:
-        #                         # timeToMake1[2] = 31
-        #                         timeToMake1[1] = 12
-        #                         timeToMake1[0] = timeToMake1[0] - 1
-        #         elif list(df.Date).count(time[1]) != 0:
-        #             indf = list(df.Date).index(time[1])
-        #
-        #         df = df.iloc[inds:indf]
-        #
-        #         df.set_index('Date', inplace=True)
-        #         df.index = pd.to_datetime(df.index)
-        #         df_1 = pd.DataFrame(df.describe())
-        #         printStatisticTable(df_1)
-        #         printPlotStock(df)
 
         def function_of_the_app():
             '''
@@ -496,6 +436,5 @@ def printTimeOfTheStock():
 btn = tk.Button(app, text='Продолжить', command=lambda: [selectedItem(), printTimeOfTheStock()],
                 activebackground='blue')
 btn.pack()
-
 
 app.mainloop()
