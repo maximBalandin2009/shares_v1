@@ -1,9 +1,9 @@
 import tkinter as tk
 import pandas as pd
-from tkinter import ttk
 import matplotlib.pyplot as plt
 import sys
 import os
+import datetime
 
 app = tk.Tk()
 app.geometry("1000x1000")
@@ -62,6 +62,8 @@ def fixFirstAndLastDate(name):
     timef = tk.Label(text=f'Последняя дата в датасете: {df.Date[df.shape[0] - 1]}')
     timef.pack()
 
+    toWork = tk.Label(text='Чтобы работали пересячения скользящих средних, надо обрезать их насовпадающее начало!',font=("Arial", 20))
+    toWork.pack()
     label2 = tk.Label(text="Время начала:")
     label2.pack()
     app.time1 = tk.Entry(app)  # .pack(padx=8, pady=8)
@@ -253,9 +255,12 @@ def fixFirstAndLastDate(name):
             listDates = []
             for i in range(listIndexes[0],listIndexes[1]):
                 listDates.append(list(df.index)[i])
+            listValues = df.Close[listIndNew[0]:listIndNew[1]]
+            line_plot_stock, = axs[0].plot(listDates, listValues, color='blue', label=f'{list_selected[0]}')
 
-            line_plot_stock,= axs[0].plot(listDates,df.Close[listIndNew[0]:listIndNew[1]], color='blue', label = f'{list_selected[0]}')
 
+            #date1 =datetime.datetime.strptime(listDates[0], '%y-%m-%d').date()
+            #print(df)
             #print(len(listDates))
 
             listSTD=[]
@@ -274,9 +279,12 @@ def fixFirstAndLastDate(name):
                 listIndexes[0]=listIndexes[0]-30
 
             listPoints30 = listSTD[listIndexes[0]:listIndexes[1]]
-            line_plot_std30,=axs[0].plot(listDatesSTD[listIndexes[0]:listIndexes[1]],listSTD[listIndexes[0]:listIndexes[1]],color='red', label = 'скользящее среднее (за каждые 30 дней)')
 
-            # print(listPoints30)
+            listDates_STD=listDatesSTD[listIndexes[0]:listIndexes[1]]
+            listValues_STD =listSTD[listIndexes[0]:listIndexes[1]]
+
+
+
 
             listSTD1=[]
             listDatesSTD1=[]
@@ -290,9 +298,29 @@ def fixFirstAndLastDate(name):
                 listDatesSTD1.append(df.index[j+200])
             if listIndexes[0]>=200:
                 listIndexes[0]=listIndexes[0]-200+30
-
             listPoints200 = listSTD1[listIndexes[0]:listIndexes[1]]
-            line_plot_std200,=axs[0].plot(listDatesSTD1[listIndexes[0]:listIndexes[1]],listSTD1[listIndexes[0]:listIndexes[1]],color='purple', label = 'скользящее среднее (за каждые 200 дней)')
+
+            listDates_STD1 = listDatesSTD1[listIndexes[0]:listIndexes[1]]
+            listValues_STD1 = listSTD1[listIndexes[0]:listIndexes[1]]
+
+
+
+            delta = listDates_STD1[0] - listDates_STD[0]
+            days = delta.days
+            if days < 0:
+                line_plot_std30, = axs[0].plot(listDates_STD[days:], listValues_STD[days:], color='red',
+                                               label='скользящее среднее (за каждые 30 дней)')
+                line_plot_std200, = axs[0].plot(listDates_STD1, listValues_STD1
+                                                , color='purple',
+                                                label='скользящее среднее (за каждые 200 дней)')
+            if days > 0:
+                line_plot_std30, = axs[0].plot(listDates_STD, listValues_STD[days:], color='red',
+                                               label='скользящее среднее (за каждые 30 дней)')
+                line_plot_std200, = axs[0].plot(listDates_STD1[days:], listValues_STD1[days:]
+                                                , color='purple',
+                                                label='скользящее среднее (за каждые 200 дней)')
+
+
             # print('#')
             # print(listPoints30)
             # print('#')
@@ -307,8 +335,8 @@ def fixFirstAndLastDate(name):
             for i in listDatesSTD1[listIndexes[0]:listIndexes[1]]:
                 #print(listDatesSTD[listIndexes[0]:listIndexes[1]][0],listDatesSTD1[listIndexes[0]:listIndexes[1]][0])
                 #print(f'({listSTD1[listIndexes[0]:listIndexes[1]][n], listSTD[listIndexes[0]:listIndexes[1]][n]}),({listPoints200[n], listPoints30[n]})')
-                if listPoints200[n] == listPoints30[n]:
-                    axs[0].scatter(i,listSTD1[listIndexes[0]:listIndexes[1]][n], c = 'r')
+                if abs(listPoints200[n] -  listPoints30[n]) < 0.1:
+                    axs[0].scatter(i,listPoints200[n], c = 'green',label = 'пересечения скользящих средних')
                 n += 1
 
             #axs[0].scatter(listDatesSTD[listIndexes[0]:listIndexes[1]][30], listSTD1[listIndexes[0]:listIndexes[1]][30], c='r')
@@ -346,33 +374,33 @@ def fixFirstAndLastDate(name):
             plt.xticks(rotation=30, ha='right')
             plt.show()
 
-        def printStatisticTable(df_1):
-            '''
-            Данная функция выводит таблицу с основной статистикой по акции
-            '''
-            list_rows = []
-            list_ind = list(df_1.index)
-            list_col = list(df_1.columns)
-            list_col.insert(0, 'index')
-            # print(list_ind)
-            for i in range(df_1.shape[0]):
-                tp = list(df_1.iloc[i])
-                tp.insert(0, list_ind[i])
-                list_rows.append(tuple(tp))
-            # print(list_rows)
-            # print(list_col)
-            tree = ttk.Treeview(columns=list_col, show="headings")
-            tree.pack(fill=tk.BOTH, expand=1)
+        # def printStatisticTable(df_1):
+        #     '''
+        #     Данная функция выводит таблицу с основной статистикой по акции
+        #     '''
+        #     list_rows = []
+        #     list_ind = list(df_1.index)
+        #     list_col = list(df_1.columns)
+        #     list_col.insert(0, 'index')
+        #     # print(list_ind)
+        #     for i in range(df_1.shape[0]):
+        #         tp = list(df_1.iloc[i])
+        #         tp.insert(0, list_ind[i])
+        #         list_rows.append(tuple(tp))
+        #     # print(list_rows)
+        #     # print(list_col)
+        #     tree = ttk.Treeview(columns=list_col, show="headings")
+        #     tree.pack(fill=tk.BOTH, expand=1)
+        #
+        #     tree.heading(f"{list_col[0]}", text="Index")
+        #     tree.heading(f"{list_col[1]}", text="Open")
+        #     tree.heading(f"{list_col[2]}", text="High")
+        #     tree.heading(f"{list_col[3]}", text="Low")
+        #     tree.heading(f"{list_col[4]}", text="Close")
+        #     tree.heading(f"{list_col[5]}", text="Volume")
 
-            tree.heading(f"{list_col[0]}", text="Index")
-            tree.heading(f"{list_col[1]}", text="Open")
-            tree.heading(f"{list_col[2]}", text="High")
-            tree.heading(f"{list_col[3]}", text="Low")
-            tree.heading(f"{list_col[4]}", text="Close")
-            tree.heading(f"{list_col[5]}", text="Volume")
-
-            for row in list_rows:
-                tree.insert("", tk.END, values=row)
+            # for row in list_rows:
+            #     tree.insert("", tk.END, values=row)
 
         def function_of_the_app():
             '''

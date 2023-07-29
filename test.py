@@ -307,8 +307,8 @@ def fixFirstAndLastDate(name):
             for i in listDatesSTD1[listIndexes[0]:listIndexes[1]]:
                 #print(listDatesSTD[listIndexes[0]:listIndexes[1]][0],listDatesSTD1[listIndexes[0]:listIndexes[1]][0])
                 #print(f'({listSTD1[listIndexes[0]:listIndexes[1]][n], listSTD[listIndexes[0]:listIndexes[1]][n]}),({listPoints200[n], listPoints30[n]})')
-                if listPoints200[n] == listPoints30[n]:
-                    axs[0].scatter(i,listSTD1[listIndexes[0]:listIndexes[1]][n], c = 'r')
+                if abs(listPoints200[n] - listPoints30[n]) < 0.1:
+                    axs[0].scatter(i,listSTD1[listIndexes[0]:listIndexes[1]][n], c = 'green')
                 n += 1
 
             #axs[0].scatter(listDatesSTD[listIndexes[0]:listIndexes[1]][30], listSTD1[listIndexes[0]:listIndexes[1]][30], c='r')
