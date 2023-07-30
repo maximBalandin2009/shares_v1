@@ -4,6 +4,7 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 import sys
 import os
+import datetime
 
 app = tk.Tk()
 app.geometry("1000x1000")
@@ -55,10 +56,16 @@ def fixFirstAndLastDate(name):
     label4 = tk.Label(text="Формат ввода: год-месяц-день")
     label4.pack()
 
-    df = pd.read_csv(name)
-    times = tk.Label(text=f'Первая дата в датасете: {df.Date[0]}')
-    times.pack()
 
+
+    df = pd.read_csv(name)
+
+    date_1 = pd.to_datetime(df.Date[0])
+    end_date = date_1 + datetime.timedelta(days=370)
+
+    times = tk.Label(text=f'Первая дата в датасете: {end_date}')
+    times.pack()
+    #print(type(df.Date[0]))
     timef = tk.Label(text=f'Последняя дата в датасете: {df.Date[df.shape[0] - 1]}')
     timef.pack()
 
@@ -119,7 +126,7 @@ def fixFirstAndLastDate(name):
 
                 if time[0] == '':
                     #print(time[0])
-                    inds = 0
+                    inds = 350
                     listIndexes.append(inds)
                 elif list(df.Date).count(time[0]) == 0:
                     isNotDate=False
@@ -129,7 +136,7 @@ def fixFirstAndLastDate(name):
                                 text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
                             label4.pack()
                             isNotDate=True
-                            inds = 0
+                            inds = 350
                             listIndexes.append(inds)
                             break
                     if list(time[0]).count('-') != 2:
@@ -137,7 +144,7 @@ def fixFirstAndLastDate(name):
                             text="К сожалению, Вы ввели не дату, поэтому была взята первая дата в датасете.")
                         label4.pack()
                         isNotDate = True
-                        inds = 0
+                        inds = 350
                         listIndexes.append(inds)
 
                     if isNotDate==False:
